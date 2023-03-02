@@ -18,7 +18,7 @@ const parser = new parsers.Readline({
     delimeter: '\r\n'
 });
 
-var port1 = new SerialPort('COM16',{
+var port1 = new SerialPort('COM7',{
     baudRate: 9600,
     dataBits:8,
     parity:'none',
@@ -34,19 +34,27 @@ port1.pipe(parser);
 var app = http.createServer(function(req,res){
     
     var file = path.join(dir, req.url);
-    //if(req.url == "\index.html"){
-        //res.writeHead(200,{'Content-Type':'text/html'});
-        //res.end(index);
-    
-    //}else{
-        
-        var type = mime[path.extname(file).slice(1)] || 'text/plain';
-        var s = fs.createReadStream(file);
-        s.on('open', function () {
-            res.setHeader('Content-Type', type);
-            s.pipe(res);
-        });
-    
+    if(req.url == "/index.html" || req.url == "/" || req.url == ""){
+        res.writeHead(200,{'Content-Type':'text/html'});
+        res.end(index);
+    }else{
+        try {
+            if (fs.existsSync(file)) {
+                var type = mime[path.extname(file).slice(1)] || 'text/plain';
+                console.log(file);
+                var s = fs.createReadStream(file);
+                s.on('open', function () {
+                    res.setHeader('Content-Type', type);
+                    s.pipe(res);
+                });
+            }else{
+                res.writeHead(404, {'Content-Type': 'text/html'});
+                res.end(file);
+            }
+        } catch (error) {
+            
+        }
+    }
     
     
     
@@ -66,7 +74,7 @@ parser.on('data', function(data){
     io.emit('data',data);
 });
 
-
+console.log("Server is running on port 3000");
 app.listen(3000);
 
 
